@@ -71,3 +71,10 @@ html[data-theme="dark"] ::selection{background:#344e70;color:#f5f7fa}
 /* Keep content clipped only while the disclosure is moving. */
 .project-details.is-animating{overflow:hidden;overflow-anchor:none}
 .project-details.is-collapsing .plus{transform:rotate(0deg)}
+
+/* Keep English date ranges together, including years outside word spans. */
+html[lang="en"] :is(#education, #experience) .timeline-date {
+  display: block;
+  white-space: nowrap;
+  font-family: Georgia, "Times New Roman", serif;
+}
