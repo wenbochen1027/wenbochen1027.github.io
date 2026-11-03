@@ -8,6 +8,8 @@
   const sectionNav = document.getElementById('section-nav');
   const researchToggle = document.getElementById('toggle-research');
   const researchDetails = [...document.querySelectorAll('#research .project-details')];
+  const teachingToggle = document.getElementById('toggle-teaching');
+  const teachingDetails = [...document.querySelectorAll('#teaching .teaching-disclosure')];
   const slideDeck = document.getElementById('tpu-slide-deck');
   const slideImage = document.getElementById('tpu-slide-image');
   const slideLink = document.getElementById('tpu-slide-link');
@@ -69,6 +71,14 @@
     researchToggle.setAttribute('aria-expanded', String(allOpen));
     formatEnglishText(researchToggle);
   }
+  function updateTeachingToggle() {
+    const allOpen = teachingDetails.every(detail => detail.open);
+    teachingToggle.dataset.zh = allOpen ? '收起全部' : '展开全部';
+    teachingToggle.dataset.en = allOpen ? 'Collapse all' : 'Expand all';
+    teachingToggle.textContent = teachingToggle.dataset[language];
+    teachingToggle.setAttribute('aria-expanded', String(allOpen));
+    formatEnglishText(teachingToggle);
+  }
   function updateSlideLabels() {
     const pageLabel = language === 'en' ? `Slide ${slidePage} of ${slideCount}` : `第 ${slidePage} 页，共 ${slideCount} 页`;
     const openLabel = language === 'en' ? `Open slide ${slidePage} in PDF` : `在 PDF 中打开第 ${slidePage} 页`;
@@ -104,11 +114,20 @@
     menu.setAttribute('aria-label', value === 'en' ? 'Toggle navigation' : '展开或收起导航');
     document.getElementById('copy-feedback').textContent = '';
     updateResearchToggle();
+    updateTeachingToggle();
     updateSlideLabels();
     formatEnglishText();
     try { localStorage.setItem('wenbo-site-language', value); } catch (_) {}
   }
   setLanguage(language);
+  teachingToggle.hidden = false;
+  teachingToggle.addEventListener('click', () => {
+    const expand = !teachingDetails.every(detail => detail.open);
+    teachingDetails.forEach(detail => { detail.open = expand; });
+    updateTeachingToggle();
+    scheduleSectionUpdate();
+  });
+  teachingDetails.forEach(detail => detail.addEventListener('toggle', updateTeachingToggle));
   researchToggle.hidden = false;
   document.getElementById('tpu-slide-controls').hidden = false;
   researchToggle.addEventListener('click', () => {
