@@ -10,6 +10,8 @@
   const researchDetails = [...document.querySelectorAll('#research .project-details')];
   const teachingToggle = document.getElementById('toggle-teaching');
   const teachingDetails = [...document.querySelectorAll('#teaching .teaching-disclosure')];
+  const disclosureStates = new Map();
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const slideDeck = document.getElementById('tpu-slide-deck');
   const slideImage = document.getElementById('tpu-slide-image');
   const slideLink = document.getElementById('tpu-slide-link');
@@ -64,7 +66,7 @@
     });
   }
   function updateResearchToggle() {
-    const allOpen = researchDetails.every(detail => detail.open);
+    const allOpen = researchDetails.every(isDetailExpanded);
     researchToggle.dataset.zh = allOpen ? '收起全部' : '展开全部';
     researchToggle.dataset.en = allOpen ? 'Collapse all' : 'Expand all';
     researchToggle.textContent = researchToggle.dataset[language];
@@ -72,13 +74,85 @@
     formatEnglishText(researchToggle);
   }
   function updateTeachingToggle() {
-    const allOpen = teachingDetails.every(detail => detail.open);
+    const allOpen = teachingDetails.every(isDetailExpanded);
     teachingToggle.dataset.zh = allOpen ? '收起全部' : '展开全部';
     teachingToggle.dataset.en = allOpen ? 'Collapse all' : 'Expand all';
     teachingToggle.textContent = teachingToggle.dataset[language];
     teachingToggle.setAttribute('aria-expanded', String(allOpen));
     formatEnglishText(teachingToggle);
   }
+  function isDetailExpanded(detail) {
+    return disclosureStates.get(detail)?.expanded ?? detail.open;
+  }
+  function finishDisclosure(detail, state) {
+    state.heightAnimation?.cancel();
+    state.fadeAnimation?.cancel();
+    state.heightAnimation = state.fadeAnimation = null;
+    detail.open = state.expanded;
+    detail.classList.remove('is-animating', 'is-collapsing');
+    scheduleSectionUpdate();
+  }
+  function finishDisclosureAnimations() {
+    disclosureStates.forEach((state, detail) => {
+      if (state.heightAnimation) finishDisclosure(detail, state);
+    });
+  }
+  function setDetailExpanded(detail, expanded) {
+    const summary = detail.querySelector('summary');
+    const content = summary.nextElementSibling;
+    const state = disclosureStates.get(detail);
+    if (state.expanded === expanded) return;
+
+    // Start a reversal from the current frame, even during rapid clicks.
+    const startHeight = detail.getBoundingClientRect().height;
+    const startOpacity = detail.open ? getComputedStyle(content).opacity : '0';
+    state.heightAnimation?.cancel();
+    state.fadeAnimation?.cancel();
+    state.expanded = expanded;
+    summary.setAttribute('aria-expanded', String(expanded));
+    if (reducedMotion.matches || typeof detail.animate !== 'function') {
+      finishDisclosure(detail, state);
+      return;
+    }
+
+    // Measure natural sizes rather than using a fixed maximum height.
+    detail.open = false;
+    const closedHeight = detail.getBoundingClientRect().height;
+    detail.open = true;
+    const endHeight = expanded ? detail.getBoundingClientRect().height : closedHeight;
+    detail.classList.add('is-animating');
+    detail.classList.toggle('is-collapsing', !expanded);
+    const timing = { duration: expanded ? 220 : 180, easing: 'cubic-bezier(.2, .7, .2, 1)', fill: 'both' };
+    state.heightAnimation = detail.animate([
+      { height: `${startHeight}px` }, { height: `${endHeight}px` }
+    ], timing);
+    state.fadeAnimation = content.animate([
+      { opacity: startOpacity }, { opacity: expanded ? 1 : 0 }
+    ], timing);
+    state.heightAnimation.onfinish = () => finishDisclosure(detail, state);
+  }
+  [...researchDetails, ...teachingDetails].forEach(detail => {
+    disclosureStates.set(detail, { expanded: detail.open });
+    const summary = detail.querySelector('summary');
+    summary.setAttribute('aria-expanded', String(detail.open));
+    summary.addEventListener('click', event => {
+      event.preventDefault();
+      setDetailExpanded(detail, !isDetailExpanded(detail));
+      updateResearchToggle();
+      updateTeachingToggle();
+    });
+    // Keep native disclosure actions (including browser find) in sync, too.
+    detail.addEventListener('toggle', () => {
+      const state = disclosureStates.get(detail);
+      if (state.heightAnimation) return;
+      state.expanded = detail.open;
+      summary.setAttribute('aria-expanded', String(detail.open));
+      updateResearchToggle();
+      updateTeachingToggle();
+    });
+  });
+  reducedMotion.addEventListener('change', finishDisclosureAnimations);
+  window.addEventListener('resize', finishDisclosureAnimations);
   function updateSlideLabels() {
     const pageLabel = language === 'en' ? `Slide ${slidePage} of ${slideCount}` : `第 ${slidePage} 页，共 ${slideCount} 页`;
     const openLabel = language === 'en' ? `Open slide ${slidePage} in PDF` : `在 PDF 中打开第 ${slidePage} 页`;
@@ -101,6 +175,7 @@
     }
   }
   function setLanguage(value) {
+    finishDisclosureAnimations();
     language = value;
     document.documentElement.lang = value === 'en' ? 'en' : 'zh-CN';
     document.querySelectorAll('[data-zh][data-en]').forEach(el => { el.textContent = el.dataset[value]; });
@@ -122,8 +197,8 @@
   setLanguage(language);
   teachingToggle.hidden = false;
   teachingToggle.addEventListener('click', () => {
-    const expand = !teachingDetails.every(detail => detail.open);
-    teachingDetails.forEach(detail => { detail.open = expand; });
+    const expand = !teachingDetails.every(isDetailExpanded);
+    teachingDetails.forEach(detail => setDetailExpanded(detail, expand));
     updateTeachingToggle();
     scheduleSectionUpdate();
   });
@@ -131,8 +206,8 @@
   researchToggle.hidden = false;
   document.getElementById('tpu-slide-controls').hidden = false;
   researchToggle.addEventListener('click', () => {
-    const expand = !researchDetails.every(detail => detail.open);
-    researchDetails.forEach(detail => { detail.open = expand; });
+    const expand = !researchDetails.every(isDetailExpanded);
+    researchDetails.forEach(detail => setDetailExpanded(detail, expand));
     updateResearchToggle();
     scheduleSectionUpdate();
   });
