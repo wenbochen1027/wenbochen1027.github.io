@@ -6,6 +6,16 @@
   const menu = document.getElementById('menu-toggle');
   const sidebar = document.querySelector('.sidebar');
   const sectionNav = document.getElementById('section-nav');
+  const researchToggle = document.getElementById('toggle-research');
+  const researchDetails = [...document.querySelectorAll('#research .project-details')];
+  const slideDeck = document.getElementById('tpu-slide-deck');
+  const slideImage = document.getElementById('tpu-slide-image');
+  const slideLink = document.getElementById('tpu-slide-link');
+  const slidePrev = document.getElementById('tpu-slide-prev');
+  const slideNext = document.getElementById('tpu-slide-next');
+  const slideCounter = document.getElementById('tpu-slide-page');
+  const slideCount = 15;
+  let slidePage = 1;
   let language = 'zh';
   try { language = localStorage.getItem('wenbo-site-language') === 'en' ? 'en' : 'zh'; } catch (_) {}
   function formatInstitutionNames() {
@@ -51,6 +61,35 @@
       node.replaceWith(fragment);
     });
   }
+  function updateResearchToggle() {
+    const allOpen = researchDetails.every(detail => detail.open);
+    researchToggle.dataset.zh = allOpen ? '收起全部' : '展开全部';
+    researchToggle.dataset.en = allOpen ? 'Collapse all' : 'Expand all';
+    researchToggle.textContent = researchToggle.dataset[language];
+    researchToggle.setAttribute('aria-expanded', String(allOpen));
+    formatEnglishText(researchToggle);
+  }
+  function updateSlideLabels() {
+    const pageLabel = language === 'en' ? `Slide ${slidePage} of ${slideCount}` : `第 ${slidePage} 页，共 ${slideCount} 页`;
+    const openLabel = language === 'en' ? `Open slide ${slidePage} in PDF` : `在 PDF 中打开第 ${slidePage} 页`;
+    slideImage.alt = `Trade Policy Uncertainty and the Chilean Peso — ${pageLabel}`;
+    slideCounter.textContent = `${slidePage} / ${slideCount}`;
+    slideCounter.setAttribute('aria-label', pageLabel);
+    slideLink.setAttribute('aria-label', openLabel);
+    slideLink.setAttribute('title', openLabel);
+  }
+  function showSlide(page) {
+    slidePage = Math.max(1, Math.min(slideCount, page));
+    slideImage.src = `assets/tpu-slides/page-${String(slidePage).padStart(2, '0')}.jpg`;
+    slideLink.href = `assets/wenbo-chen-tpu-theory-slides.pdf#page=${slidePage}`;
+    slidePrev.disabled = slidePage === 1;
+    slideNext.disabled = slidePage === slideCount;
+    updateSlideLabels();
+    if (slidePage < slideCount) {
+      const nextImage = new Image();
+      nextImage.src = `assets/tpu-slides/page-${String(slidePage + 1).padStart(2, '0')}.jpg`;
+    }
+  }
   function setLanguage(value) {
     language = value;
     document.documentElement.lang = value === 'en' ? 'en' : 'zh-CN';
@@ -64,10 +103,32 @@
     languageItems.forEach(item => item.setAttribute('aria-checked', String(item.dataset.language === value)));
     menu.setAttribute('aria-label', value === 'en' ? 'Toggle navigation' : '展开或收起导航');
     document.getElementById('copy-feedback').textContent = '';
+    updateResearchToggle();
+    updateSlideLabels();
     formatEnglishText();
     try { localStorage.setItem('wenbo-site-language', value); } catch (_) {}
   }
   setLanguage(language);
+  researchToggle.hidden = false;
+  document.getElementById('tpu-slide-controls').hidden = false;
+  researchToggle.addEventListener('click', () => {
+    const expand = !researchDetails.every(detail => detail.open);
+    researchDetails.forEach(detail => { detail.open = expand; });
+    updateResearchToggle();
+    scheduleSectionUpdate();
+  });
+  researchDetails.forEach(detail => detail.addEventListener('toggle', updateResearchToggle));
+  slidePrev.addEventListener('click', () => showSlide(slidePage - 1));
+  slideNext.addEventListener('click', () => showSlide(slidePage + 1));
+  slideDeck.addEventListener('keydown', event => {
+    const pages = { ArrowLeft: slidePage - 1, ArrowRight: slidePage + 1, Home: 1, End: slideCount };
+    if (Object.prototype.hasOwnProperty.call(pages, event.key)) {
+      event.preventDefault();
+      showSlide(pages[event.key]);
+    }
+  });
+  showSlide(1);
+
   function closeLanguageMenu() {
     languageMenu.hidden = true;
     languageButton.setAttribute('aria-expanded', 'false');
