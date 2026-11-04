@@ -140,3 +140,9 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
 #teaching .course-term {
   font-family: Georgia, "Times New Roman", serif;
 }
+
+/* Section headings lead directly into their first entry. */
+.research-list > .project-category:first-child,
+.report-list > .report-entry:first-child {
+  border-top: 0;
+}
