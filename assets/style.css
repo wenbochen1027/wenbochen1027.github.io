@@ -128,8 +128,10 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
     display: flex;
     flex-direction: column;
   }
+  #experience .timeline-meta { display: contents; }
+  #experience .timeline-date { order: -4; }
   #experience .timeline-item h3 { order: -3; }
-  #experience .timeline-meta { order: -2; padding-top: 0; }
+  #experience .timeline-location { order: -2; }
   #experience .timeline-detail { order: -1; }
   #experience .timeline-meta .timeline-date,
   #experience .timeline-meta .timeline-location { margin: 0; }
