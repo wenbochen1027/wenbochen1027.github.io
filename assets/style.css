@@ -136,3 +136,7 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
   #experience .timeline-meta .timeline-date,
   #experience .timeline-meta .timeline-location { margin: 0; }
 }
+
+#teaching .course-term {
+  font-family: Georgia, "Times New Roman", serif;
+}
