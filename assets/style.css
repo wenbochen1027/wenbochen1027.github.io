@@ -78,3 +78,59 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
   white-space: nowrap;
   font-family: Georgia, "Times New Roman", serif;
 }
+
+.mobile-section-nav { display: none; }
+
+@media screen and (max-width: 900px) {
+  html { scroll-padding-top: 60px; }
+  .page-preferences {
+    position: relative;
+    inset: auto;
+    width: max-content;
+    margin: 8px 6% 8px auto;
+  }
+  .page-layout { margin-top: 22px; }
+  .sidebar .sidebar-controls,
+  .sidebar.menu-open .sidebar-nav { display: none; }
+  .mobile-section-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    overflow-x: auto;
+    padding-inline: clamp(4px, 1.5vw, 18px);
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: none;
+  }
+  .mobile-section-nav a {
+    flex: 1 0 auto;
+    display: grid;
+    place-items: center;
+    min-height: 46px;
+    padding-inline: 3px;
+    border-bottom: 2px solid transparent;
+    font-size: clamp(11px, 3.2vw, 14px);
+    line-height: 1.2;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+  .mobile-section-nav a[aria-current="location"] {
+    color: var(--accent);
+    background: var(--pale);
+    border-bottom-color: var(--accent);
+  }
+  .mobile-section-nav a:focus-visible { outline-offset: -3px; }
+}
+
+@media screen and (max-width: 650px) {
+  #experience .timeline-item {
+    display: flex;
+    flex-direction: column;
+  }
+  #experience .timeline-item h3 { order: -3; }
+  #experience .timeline-meta { order: -2; padding-top: 0; }
+  #experience .timeline-detail { order: -1; }
+  #experience .timeline-meta .timeline-date,
+  #experience .timeline-meta .timeline-location { margin: 0; }
+}
