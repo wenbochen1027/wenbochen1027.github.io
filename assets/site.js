@@ -273,10 +273,15 @@
   sectionNav.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenu));
   document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
 
-  const navLinks = [...sectionNav.querySelectorAll('.nav-link')];
-  const sections = navLinks.map(link => document.getElementById(link.hash.slice(1)));
+  const desktopLinks = [...sectionNav.querySelectorAll('.nav-link')];
+  const mobileNav = document.querySelector('.mobile-section-nav');
+  const mobileLinks = mobileNav ? [...mobileNav.querySelectorAll('a')] : [];
+  const navLinks = [...desktopLinks, ...mobileLinks];
+  const sections = desktopLinks.map(link => document.getElementById(link.hash.slice(1)));
   function updateCurrentSection() {
-    const threshold = Math.min(200, Math.max(90, window.innerHeight * .24));
+    const threshold = mobileNav?.offsetHeight
+      ? 64
+      : Math.min(200, Math.max(90, window.innerHeight * .24));
     let current = sections[0];
     sections.forEach(section => {
       if (section.getBoundingClientRect().top <= threshold) current = section;
