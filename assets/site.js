@@ -18,7 +18,7 @@
   const slidePrev = document.getElementById('tpu-slide-prev');
   const slideNext = document.getElementById('tpu-slide-next');
   const slideCounter = document.getElementById('tpu-slide-page');
-  const slideCount = 15;
+  const slideCount = 25;
   let slidePage = 1;
   let language = 'zh';
   try { language = localStorage.getItem('wenbo-site-language') === 'en' ? 'en' : 'zh'; } catch (_) {}
@@ -164,14 +164,14 @@
   }
   function showSlide(page) {
     slidePage = Math.max(1, Math.min(slideCount, page));
-    slideImage.src = `assets/tpu-slides/page-${String(slidePage).padStart(2, '0')}.jpg`;
-    slideLink.href = `assets/wenbo-chen-tpu-theory-slides.pdf#page=${slidePage}`;
+    slideImage.src = `assets/tpu-slides-202611/page-${String(slidePage).padStart(2, '0')}.jpg`;
+    slideLink.href = `assets/wenbo-chen-tpu-slides-202611.pdf#page=${slidePage}`;
     slidePrev.disabled = slidePage === 1;
     slideNext.disabled = slidePage === slideCount;
     updateSlideLabels();
     if (slidePage < slideCount) {
       const nextImage = new Image();
-      nextImage.src = `assets/tpu-slides/page-${String(slidePage + 1).padStart(2, '0')}.jpg`;
+      nextImage.src = `assets/tpu-slides-202611/page-${String(slidePage + 1).padStart(2, '0')}.jpg`;
     }
   }
   function setLanguage(value) {
