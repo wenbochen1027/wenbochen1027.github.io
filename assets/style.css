@@ -146,3 +146,59 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
 .report-list > .report-entry:first-child {
   border-top: 0;
 }
+
+/* A decorative visitor below the contact links. */
+.contact-cat-track {
+  position: relative;
+  height: 76px;
+  margin: -8px 26px 4px;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--ink);
+}
+.contact-cat-patrol {
+  position: absolute;
+  inset: 0 88px 0 0;
+  animation: cat-patrol 18s linear infinite;
+}
+.contact-cat-facing {
+  width: 88px;
+  height: 66px;
+  animation: cat-turn 18s steps(1, end) infinite;
+}
+.contact-cat { display: block; width: 88px; height: 66px; }
+.cat-torso { animation: cat-bob .65s ease-in-out infinite; }
+.cat-leg { transform-box: fill-box; transform-origin: 50% 0%; }
+.cat-leg-near { animation: cat-step .65s ease-in-out infinite alternate; }
+.cat-leg-far { animation: cat-step .65s ease-in-out -.65s infinite alternate; }
+.cat-tail {
+  transform-box: fill-box;
+  transform-origin: 100% 100%;
+  animation: cat-tail-sway 1.6s ease-in-out infinite alternate;
+}
+@keyframes cat-patrol {
+  0%, 7% { transform: translateX(0); }
+  43%, 55% { transform: translateX(100%); }
+  93%, 100% { transform: translateX(0); }
+}
+@keyframes cat-turn {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(-1); }
+  98% { transform: scaleX(1); }
+}
+@keyframes cat-bob { 50% { transform: translateY(-1.5px); } }
+@keyframes cat-step {
+  from { transform: rotate(-10deg); }
+  to { transform: rotate(10deg); }
+}
+@keyframes cat-tail-sway {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(8deg); }
+}
+@media (max-width: 650px) {
+  .contact-cat-track { margin-inline: 18px; height: 70px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .contact-cat-track * { animation: none !important; }
+}
+@media print { .contact-cat-track { display: none; } }
