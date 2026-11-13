@@ -327,4 +327,94 @@
     }
     formatEnglishText(feedback);
   });
+
+  const contact = document.getElementById('contact');
+  const catTrack = contact.querySelector('.contact-cat-track');
+  const feedButton = contact.querySelector('.cat-feed-button');
+  if (!catTrack || !feedButton) return;
+
+  const patrol = catTrack.querySelector('.contact-cat-patrol');
+  const cat = catTrack.querySelector('.contact-cat-facing');
+  const feedStatus = document.getElementById('cat-feed-status');
+  const patrolDuration = 18000; // Keep in sync with the CSS patrol and turn animations.
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const translate = x => `translateX(${x}px)`;
+
+  async function feedCat(clickX) {
+    if (catTrack.dataset.feeding) return;
+
+    const track = catTrack.getBoundingClientRect();
+    const catWidth = cat.offsetWidth;
+    const travel = track.width - catWidth;
+    if (travel <= 0) return;
+
+    const start = patrol.getBoundingClientRect().left - track.left;
+    const foodX = Math.max(15, Math.min(track.width - 15, clickX - track.left));
+    // The cat's nose is near the far edge of the SVG in either direction.
+    const rightTarget = foodX - catWidth * .93;
+    const leftTarget = foodX - catWidth * .07;
+    const faceRight = rightTarget >= 0 && (leftTarget > travel || foodX >= start + catWidth / 2);
+    const target = Math.max(0, Math.min(travel, faceRight ? rightTarget : leftTarget));
+    const motion = !reducedMotion.matches;
+
+    feedStatus.textContent = '';
+    feedButton.setAttribute('aria-disabled', 'true');
+    patrol.style.setProperty('--cat-direction', faceRight ? '1' : '-1');
+    patrol.style.setProperty('--cat-position', `${target}px`);
+    catTrack.dataset.feeding = 'approaching';
+
+    const food = document.createElement('div');
+    food.className = 'cat-food';
+    food.style.left = `${foodX}px`;
+    const pellets = Array.from({ length: 4 }, () => {
+      const pellet = document.createElement('span');
+      pellet.className = 'cat-pellet';
+      food.append(pellet);
+      return pellet;
+    });
+    catTrack.append(food);
+
+    try {
+      if (motion) {
+        const walk = patrol.animate(
+          [{ transform: translate(start) }, { transform: translate(target) }],
+          { duration: Math.min(1400, Math.max(360, Math.abs(start - target) * 1.8)), easing: 'ease-in-out' }
+        );
+        const drops = pellets.map((pellet, index) => pellet.animate(
+          [
+            { transform: 'translateY(-58px) rotate(-30deg)', opacity: 0 },
+            { transform: 'translateY(0) rotate(12deg)', opacity: 1, offset: .78 },
+            { transform: 'translateY(-5px) rotate(-8deg)', opacity: 1, offset: .9 },
+            { transform: 'translateY(0)', opacity: 1 }
+          ],
+          { duration: 380, delay: index * 35, fill: 'backwards', easing: 'ease-in' }
+        ));
+        await Promise.all([walk, ...drops].map(animation => animation.finished));
+      }
+      catTrack.dataset.feeding = 'eating';
+      for (const pellet of pellets) {
+        await wait(175);
+        pellet.style.visibility = 'hidden';
+      }
+      feedStatus.textContent = language === 'en' ? 'The cat ate the food.' : '小猫吃完了。';
+    } finally {
+      food.remove();
+      const progress = target / travel;
+      const phase = faceRight ? .07 + .36 * progress : .55 + .38 * (1 - progress);
+      patrol.style.animationDelay = cat.style.animationDelay = `${-phase * patrolDuration}ms`;
+      delete catTrack.dataset.feeding;
+      feedButton.removeAttribute('aria-disabled');
+    }
+  }
+
+  feedButton.hidden = false;
+  contact.classList.add('cat-feed-enabled');
+  feedButton.addEventListener('click', () => {
+    const track = catTrack.getBoundingClientRect();
+    feedCat(track.left + track.width * .65);
+  });
+  contact.addEventListener('click', event => {
+    if (event.target.closest('a, button') || window.getSelection()?.toString()) return;
+    feedCat(event.clientX);
+  });
 })();

@@ -147,7 +147,21 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
   border-top: 0;
 }
 
-/* A decorative visitor below the contact links. */
+/* The cat walks below the contact links and stops to eat when fed. */
+.contact-section.cat-feed-enabled { cursor: pointer; }
+.cat-feed-button {
+  margin-top: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 15px;
+}
+.cat-feed-button:hover, .cat-feed-button:focus-visible {
+  color: var(--accent);
+  background: var(--pale);
+}
 .contact-cat-track {
   position: relative;
   height: 76px;
@@ -176,6 +190,40 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
   transform-origin: 100% 100%;
   animation: cat-tail-sway 1.6s ease-in-out infinite alternate;
 }
+.contact-cat-track[data-feeding] .contact-cat-patrol {
+  animation: none;
+  transform: translateX(var(--cat-position));
+}
+.contact-cat-track[data-feeding] .contact-cat-facing {
+  animation: none;
+  transform: scaleX(var(--cat-direction));
+}
+.contact-cat-track[data-feeding="eating"] :is(.cat-torso, .cat-leg) {
+  animation-play-state: paused;
+}
+.contact-cat-track[data-feeding="eating"] .cat-head {
+  transform-box: fill-box;
+  transform-origin: 0 85%;
+  animation: cat-eat .34s ease-in-out infinite alternate;
+}
+.cat-food {
+  position: absolute;
+  top: 52px;
+  display: flex;
+  gap: 2px;
+  transform: translateX(-50%);
+}
+.cat-pellet {
+  width: 5px;
+  height: 4px;
+  border-radius: 45%;
+  background: #a16b3c;
+  box-shadow: inset 0 1px #d8a56f;
+}
+@keyframes cat-eat {
+  from { transform: translate(4px, 15px) rotate(16deg); }
+  to { transform: translate(4px, 19px) rotate(23deg); }
+}
 @keyframes cat-patrol {
   0%, 7% { transform: translateX(0); }
   43%, 55% { transform: translateX(100%); }
@@ -201,4 +249,4 @@ html[lang="en"] :is(#education, #experience) .timeline-date {
 @media (prefers-reduced-motion: reduce) {
   .contact-cat-track * { animation: none !important; }
 }
-@media print { .contact-cat-track { display: none; } }
+@media print { .contact-cat-track, .cat-feed-button { display: none; } }
